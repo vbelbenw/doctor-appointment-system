@@ -168,17 +168,21 @@ const generateSlots = async (req, res) => {
 const getAvailableSlots = async (req, res) => {
     try {
         const { doctor_id } = req.params;
+        const { all } = req.query;
 
         const dateFilter = formatDate(new Date());
 
-        const [slots] = await db.query(`
-            SELECT * FROM slots 
-            WHERE doctor_id = ? 
-              AND status = 'AVAILABLE' 
-              AND date >= ?
-            ORDER BY date ASC, start_time ASC
-        `, [doctor_id, dateFilter]);
+        let query = 'SELECT * FROM slots WHERE doctor_id = ?';
+        let params = [doctor_id];
 
+        if (!all) {
+            query += " AND status = 'AVAILABLE' AND date >= ?";
+            params.push(dateFilter);
+        }
+
+        query += ' ORDER BY date ASC, start_time ASC';
+
+        const [slots] = await db.query(query, params);
         res.status(200).json(slots);
 
     } catch (error) {
@@ -186,6 +190,7 @@ const getAvailableSlots = async (req, res) => {
         res.status(500).json({ message: "Failed to retrieve slots" });
     }
 };
+
 
 module.exports = {
     generateSlots,

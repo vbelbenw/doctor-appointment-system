@@ -9,6 +9,7 @@ const availabilityRoutes = require('./routes/availabilityRoutes');
 const slotRoutes = require('./routes/slotRoutes');
 const appointmentRoutes = require('./routes/appointmentRoutes');
 const notificationRoutes = require('./routes/notificationRoutes');
+const adminRoutes = require('./routes/adminRoutes'); // New admin module
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use('/api/availability', availabilityRoutes);
 app.use('/api/slots', slotRoutes);
 app.use('/api/appointments', appointmentRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/admin', adminRoutes); // Mount admin routes
 
 app.get('/', (req, res) => {
     res.send("API is running...");

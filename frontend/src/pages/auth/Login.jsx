@@ -1,12 +1,25 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import api from '../../services/api';
+import { useAuth } from '../../context/AuthContext';
 
 const Login = () => {
     const [credentials, setCredentials] = useState({ email: '', password: '' });
     const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    
+    // Consume AuthContext
+    const { login, isAuthenticated, user } = useAuth();
+
+    // Intercept auto-login
+    useEffect(() => {
+        if (isAuthenticated && user) {
+            if (user.role === 'PATIENT') navigate('/patient/dashboard', { replace: true });
+            else if (user.role === 'DOCTOR') navigate('/doctor/dashboard', { replace: true });
+            else if (user.role === 'ADMIN') navigate('/admin/dashboard', { replace: true });
+        }
+    }, [isAuthenticated, user, navigate]);
 
     const handleChange = (e) => {
         setCredentials({ ...credentials, [e.target.name]: e.target.value });
@@ -19,16 +32,16 @@ const Login = () => {
 
         try {
             const response = await api.post('/auth/login', credentials);
-            const { token, user } = response.data;
+            const { token, user: responseUser } = response.data;
             
-            localStorage.setItem('token', token);
-            localStorage.setItem('user', JSON.stringify(user));
+            // Use context login
+            login(responseUser, token);
 
-            if (user.role === 'PATIENT') {
+            if (responseUser.role === 'PATIENT') {
                 navigate('/patient/dashboard');
-            } else if (user.role === 'DOCTOR') {
+            } else if (responseUser.role === 'DOCTOR') {
                 navigate('/doctor/dashboard');
-            } else if (user.role === 'ADMIN') {
+            } else if (responseUser.role === 'ADMIN') {
                 navigate('/admin/dashboard');
             } else {
                 navigate('/');

@@ -6,6 +6,7 @@ const Register = () => {
     const [formData, setFormData] = useState({
         name: '',
         email: '',
+        phone_number: '',
         password: '',
         role: 'PATIENT'
     });
@@ -22,6 +23,12 @@ const Register = () => {
         e.preventDefault();
         setError('');
         setSuccess('');
+
+        if (formData.password.length < 6) {
+            setError('Password must be at least 6 characters long.');
+            return;
+        }
+
         setLoading(true);
 
         try {
@@ -93,6 +100,22 @@ const Register = () => {
                                 required
                                 className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 text-white placeholder-slate-500 transition-all"
                                 placeholder="name@example.com"
+                            />
+                        </div>
+
+                        <div>
+                            <label className="block text-sm font-medium text-slate-300 mb-1.5" htmlFor="phone_number">
+                                Phone Number
+                            </label>
+                            <input
+                                type="tel"
+                                id="phone_number"
+                                name="phone_number"
+                                value={formData.phone_number}
+                                onChange={handleChange}
+                                required
+                                className="w-full px-4 py-3 bg-slate-900/50 border border-white/10 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500/50 text-white placeholder-slate-500 transition-all"
+                                placeholder="+251 960648894"
                             />
                         </div>
 

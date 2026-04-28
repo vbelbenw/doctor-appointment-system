@@ -7,11 +7,15 @@ const jwt = require('jsonwebtoken');
 // @access  Public
 const registerUser = async (req, res) => {
     try {
-        const { name, email, password, role } = req.body;
+        const { name, email, password, role, phone_number } = req.body;
 
         // 1. Basic validation
-        if (!name || !email || !password || !role) {
-            return res.status(400).json({ message: "Please provide all required fields (name, email, password, role)" });
+        if (!name || !email || !password || !role || !phone_number) {
+            return res.status(400).json({ message: "Please provide all required fields (name, email, phone_number, password, role)" });
+        }
+
+        if (password.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters long." });
         }
 
         // 2. Validate role enum
@@ -32,8 +36,8 @@ const registerUser = async (req, res) => {
 
         // 5. Insert the new user into the database
         const [result] = await db.query(
-            'INSERT INTO users (name, email, password, role) VALUES (?, ?, ?, ?)',
-            [name, email, hashedPassword, role]
+            'INSERT INTO users (name, email, phone_number, password, role) VALUES (?, ?, ?, ?, ?)',
+            [name, email, phone_number, hashedPassword, role]
         );
 
         // 6. Return a success response without the password
@@ -77,7 +81,8 @@ const loginUser = async (req, res) => {
         // 4. Create JWT Payload
         const payload = {
             id: user.id,
-            role: user.role
+            role: user.role,
+            requires_password_change: user.requires_password_change === 1
         };
 
         // 5. Sign the Token (Expires in 1 day)
@@ -91,7 +96,9 @@ const loginUser = async (req, res) => {
                 id: user.id,
                 name: user.name,
                 email: user.email,
-                role: user.role
+                phone_number: user.phone_number,
+                role: user.role,
+                requires_password_change: user.requires_password_change === 1
             }
         });
 
@@ -101,7 +108,37 @@ const loginUser = async (req, res) => {
     }
 };
 
+// @route   PUT /api/auth/change-password
+// @desc    Change temporary password for users
+// @access  Private
+const changePassword = async (req, res) => {
+    try {
+        const { newPassword } = req.body;
+        const userId = req.user.id;
+
+        if (!newPassword || newPassword.length < 6) {
+            return res.status(400).json({ message: "Password must be at least 6 characters long." });
+        }
+
+        // Hash the new password
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+
+        // Update database and remove the requires_password_change flag
+        await db.query(
+            'UPDATE users SET password = ?, requires_password_change = false WHERE id = ?',
+            [hashedPassword, userId]
+        );
+
+        res.status(200).json({ message: "Password successfully updated!" });
+    } catch (error) {
+        console.error("Change Password Error:", error);
+        res.status(500).json({ message: "Server error during password update." });
+    }
+};
+
 module.exports = {
     registerUser,
-    loginUser
+    loginUser,
+    changePassword
 };
