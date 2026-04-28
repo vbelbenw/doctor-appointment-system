@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 const CreateDoctor = () => {
     const { token } = useAuth();
@@ -27,25 +28,14 @@ const CreateDoctor = () => {
         setError('');
 
         try {
-            const response = await fetch('http://localhost:5000/api/doctors', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify(formData)
-            });
+            const response = await api.post('/doctors', formData);
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (response.status === 201) {
                 setMessage('Doctor profile created successfully!');
                 setFormData({ name: '', email: '', phone_number: '', password: '', specialization: '', experience_years: '', consultation_fee: '' });
-            } else {
-                setError(data.message || 'Failed to create doctor');
             }
         } catch (err) {
-            setError('Server connection failed. Please try again.');
+            setError(err.response?.data?.message || 'Failed to create doctor. Please try again.');
         } finally {
             setLoading(false);
         }

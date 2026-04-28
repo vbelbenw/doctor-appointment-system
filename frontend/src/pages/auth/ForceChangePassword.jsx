@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 const ForceChangePassword = () => {
     const { token, updateUser } = useAuth();
@@ -25,26 +26,15 @@ const ForceChangePassword = () => {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:5000/api/auth/change-password', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${token}`
-                },
-                body: JSON.stringify({ newPassword: password })
-            });
+            const response = await api.put('/auth/change-password', { newPassword: password });
 
-            const data = await response.json();
-
-            if (response.ok) {
+            if (response.status === 200) {
                 // Update local context to remove restriction
                 updateUser({ requires_password_change: false });
                 navigate('/doctor/dashboard', { replace: true });
-            } else {
-                setError(data.message || 'Failed to update password.');
             }
         } catch (err) {
-            setError('Server error while saving password.');
+            setError(err.response?.data?.message || 'Server error while saving password.');
         } finally {
             setLoading(false);
         }

@@ -24,7 +24,6 @@ const generateSlots = async (req, res) => {
         if (req.user.role === 'DOCTOR') {
              const [docs] = await connection.query('SELECT id FROM doctors WHERE user_id = ?', [req.user.id]);
              if (docs.length === 0 || docs[0].id != doctor_id) {
-                  connection.release();
                   return res.status(403).json({ message: "You can only generate slots for yourself" });
              }
         }
@@ -37,7 +36,6 @@ const generateSlots = async (req, res) => {
         today.setHours(0, 0, 0, 0);
         
         if (endDateParsed < startDateParsed) {
-             connection.release();
              return res.status(400).json({ message: "end_date must be after start_date" });
         }
 
@@ -48,7 +46,6 @@ const generateSlots = async (req, res) => {
         );
 
         if (availabilities.length === 0) {
-            connection.release();
             return res.status(400).json({ message: "No availability found for this doctor" });
         }
 

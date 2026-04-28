@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import DashboardLayout from '../../components/layout/DashboardLayout';
 import { useAuth } from '../../context/AuthContext';
+import api from '../../services/api';
 
 const ManageDoctors = () => {
     const { token } = useAuth();
@@ -10,15 +11,10 @@ const ManageDoctors = () => {
     useEffect(() => {
         const fetchDoctors = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/doctors', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setDoctors(data);
-                }
+                const response = await api.get('/doctors');
+                setDoctors(response.data);
             } catch (error) {
-                console.error("Failed to fetch doctors", error);
+                // Error handled by interceptor or local state if needed
             } finally {
                 setLoading(false);
             }

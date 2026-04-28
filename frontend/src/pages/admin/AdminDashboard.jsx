@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import DashboardLayout from '../../components/layout/DashboardLayout';
+import api from '../../services/api';
 
 const AdminDashboard = () => {
     const { user, token } = useAuth();
@@ -11,15 +12,10 @@ const AdminDashboard = () => {
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const response = await fetch('http://localhost:5000/api/admin/stats', {
-                    headers: { 'Authorization': `Bearer ${token}` }
-                });
-                if (response.ok) {
-                    const data = await response.json();
-                    setStats(data);
-                }
+                const response = await api.get('/admin/stats');
+                setStats(response.data);
             } catch (error) {
-                console.error("Failed to fetch admin stats", error);
+                // Error handled by interceptor or local state if needed
             } finally {
                 setLoading(false);
             }
