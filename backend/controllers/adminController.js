@@ -2,8 +2,8 @@ const db = require('../config/db');
 
 const getSystemStats = async (req, res) => {
     try {
-        const [[{ total_doctors }]] = await db.query('SELECT COUNT(*) as total_doctors FROM doctors');
-        const [[{ total_patients }]] = await db.query('SELECT COUNT(*) as total_patients FROM patients');
+        const [[{ total_doctors }]] = await db.query('SELECT COUNT(*) as total_doctors FROM users WHERE role = "DOCTOR"');
+        const [[{ total_patients }]] = await db.query('SELECT COUNT(*) as total_patients FROM users WHERE role = "PATIENT"');
         const [[{ total_appointments }]] = await db.query('SELECT COUNT(*) as total_appointments FROM appointments');
         
         // Calculate total users in the system (Admins, Doctors, Patients)
